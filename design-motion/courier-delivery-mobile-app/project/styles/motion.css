@@ -1,0 +1,385 @@
+/* ============================================================
+   ALPHA POS — COURIER APP · MOTION LAYER
+   Additive only. Springs over linear. Motion in --primary and
+   --success únicamente. Micro-interactions 150–300ms; celebrations <~1s.
+   Reduced-motion: every keyframe lives inside
+   @media (prefers-reduced-motion: no-preference) and every base
+   state is the VISIBLE end-state, so reduced-motion = instant.
+   ============================================================ */
+
+/* spring-ish cubic-beziers (shared vocabulary) */
+:root {
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);     /* overshoot pop */
+  --ease-spring-soft: cubic-bezier(.22, 1, .36, 1);   /* settle, no overshoot */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --dur-micro: .18s;
+  --dur-ui: .26s;
+}
+
+/* =================================================================
+   GLOBAL — universal press-scale (spring-back)
+   Base has the transition; :active scales to .96. Works regardless
+   of reduced-motion (transform transition is subtle & meaningful).
+   ================================================================= */
+.btn, .iconbtn, .key, .amt-chip, .paymethod, .napp, .tab, .seg__btn,
+.shift-toggle, .ocard, .balance-pill, .lrow, .provchip {
+  transition: transform var(--dur-micro) var(--ease-spring),
+              background-color .14s ease, border-color .14s ease, color .14s ease,
+              box-shadow .16s ease;
+}
+.btn:active        { transform: scale(.96); }
+.iconbtn:active    { transform: scale(.9); }
+.key:active        { transform: scale(.92); }
+.amt-chip:active,
+.provchip:active   { transform: scale(.93); }
+.paymethod:active,
+.napp:active,
+.lrow:active       { transform: scale(.985); }
+.ocard:active      { transform: scale(.985); }
+.balance-pill:active { transform: scale(.98); }
+.seg__btn:active   { transform: scale(.97); }
+/* keep existing .btn translate disabled in favour of scale */
+.btn:active { transform: scale(.96); }
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* ===============================================================
+     LIST / CONTENT ENTRANCE — staggered fade + translateY
+     Applied to scroll content; children animate in sequence.
+     Base (no media) = fully visible, so reduced-motion shows instantly.
+     =============================================================== */
+  .ca-scroll .ca-stack > *,
+  .ca-scroll .kgrid > *,
+  .ca-scroll .qstats,
+  .ca-scroll .seg,
+  .ca-scroll .balance-pill,
+  .ca-scroll .recon-hero,
+  .ca-scroll .card,
+  .stagger > * {
+    animation: enterUp .42s var(--ease-out) both;
+  }
+  /* stagger via nth-child (≈60ms steps) */
+  .ca-scroll .ca-stack > *:nth-child(1),
+  .stagger > *:nth-child(1) { animation-delay: .02s; }
+  .ca-scroll .ca-stack > *:nth-child(2),
+  .stagger > *:nth-child(2) { animation-delay: .08s; }
+  .ca-scroll .ca-stack > *:nth-child(3),
+  .stagger > *:nth-child(3) { animation-delay: .14s; }
+  .ca-scroll .ca-stack > *:nth-child(4),
+  .stagger > *:nth-child(4) { animation-delay: .20s; }
+  .ca-scroll .ca-stack > *:nth-child(5),
+  .stagger > *:nth-child(5) { animation-delay: .26s; }
+  .ca-scroll .ca-stack > *:nth-child(6),
+  .stagger > *:nth-child(6) { animation-delay: .32s; }
+  .ca-scroll .ca-stack > *:nth-child(n+7) { animation-delay: .36s; }
+
+  @keyframes enterUp {
+    from { transform: translateY(10px); }
+    to   { transform: translateY(0); }
+  }
+  /* visibility-safe: when the tab/iframe is backgrounded CSS animations pause;
+     transform-only entrance keeps content visible if paused mid-delay. */
+
+  /* card grid (Today KPIs) staggered */
+  .kgrid > *:nth-child(1) { animation-delay: .02s; }
+  .kgrid > *:nth-child(2) { animation-delay: .08s; }
+  .kgrid > *:nth-child(3) { animation-delay: .14s; }
+  .kgrid > *:nth-child(4) { animation-delay: .20s; }
+  .kgrid > *:nth-child(5) { animation-delay: .26s; }
+  .kgrid > *:nth-child(6) { animation-delay: .32s; }
+
+  /* ===============================================================
+     ODOMETER — rolling mono digits
+     =============================================================== */
+  .odo__col { will-change: transform; }
+  .odo__roll {
+    transition: transform .62s var(--ease-spring-soft);
+  }
+
+  /* ===============================================================
+     TAB BAR — active icon spring + sliding indicator
+     =============================================================== */
+  .tab.is-active .ic,
+  .tab.is-active svg { animation: tabPop .42s var(--ease-spring); }
+  @keyframes tabPop {
+    0%   { transform: translateY(2px) scale(.85); }
+    60%  { transform: translateY(-2px) scale(1.12); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .tab__ind { transition: transform .34s var(--ease-spring), width .34s var(--ease-spring); }
+
+  /* badge bump + one-time glow ring when count increases */
+  .tab__badge.is-bump { animation: badgeBump .5s var(--ease-spring); }
+  @keyframes badgeBump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.5); }
+    100% { transform: scale(1); }
+  }
+  .tab__badge.is-bump::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 99px;
+    border: 2px solid var(--error); animation: badgeGlow .6s var(--ease-out) forwards;
+  }
+  @keyframes badgeGlow { from { opacity: .7; transform: scale(.7); } to { opacity: 0; transform: scale(2.2); } }
+
+  /* ===============================================================
+     ONLINE / SHIFT TOGGLE — breathing glow on dot while online
+     (color sweep handled by existing .switch transition)
+     =============================================================== */
+  .shift-toggle.is-on .shift-toggle__dot { animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 0 3px var(--success-border); }
+    50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--success) 18%, transparent); }
+  }
+  .lrow .switch.is-on { animation: switchSweep .3s var(--ease-out); }
+  @keyframes switchSweep { from { filter: saturate(.4) brightness(1.1); } to { filter: none; } }
+
+  /* ===============================================================
+     PROGRESS BARS — spring fill (goal + split)
+     =============================================================== */
+  .goalbar__fill { transition: width .6s var(--ease-spring-soft); }
+  .split-meter__cash, .split-meter__qr { transition: width .5s var(--ease-spring-soft); }
+
+  /* ===============================================================
+     QR WAITING — breathing pulse + scanning shimmer ring
+     =============================================================== */
+  .qrcard.is-waiting { animation: qrBreathe 2.6s ease-in-out infinite; }
+  @keyframes qrBreathe {
+    0%, 100% { box-shadow: var(--shadow-lg), 0 0 0 0 var(--primary-ring); }
+    50%      { box-shadow: var(--shadow-lg), 0 0 0 10px color-mix(in srgb, var(--primary) 10%, transparent); }
+  }
+  .qr-shimmer {
+    position: absolute; inset: -3px; border-radius: 24px; pointer-events: none;
+    background: conic-gradient(from 0deg,
+      transparent 0deg, transparent 250deg,
+      color-mix(in srgb, var(--primary) 60%, transparent) 320deg, transparent 360deg);
+    -webkit-mask: radial-gradient(circle, transparent calc(100% - 4px), #000 calc(100% - 4px));
+            mask: radial-gradient(circle, transparent calc(100% - 4px), #000 calc(100% - 4px));
+    animation: qrSpin 2.2s linear infinite;
+  }
+  @keyframes qrSpin { to { transform: rotate(360deg); } }
+
+  /* ===============================================================
+     PAID — QR → checkmark crossfade + success ripple
+     =============================================================== */
+  .qr-crossfade-out { animation: qrFadeOut .4s var(--ease-out) forwards; }
+  @keyframes qrFadeOut { to { opacity: 0; transform: scale(.7); } }
+
+  .ripple {
+    position: absolute; left: 50%; top: 50%; width: 120px; height: 120px;
+    margin: -60px 0 0 -60px; border-radius: 99px;
+    border: 3px solid var(--success); pointer-events: none;
+    animation: ripple .8s var(--ease-out) forwards;
+  }
+  @keyframes ripple {
+    from { opacity: .55; transform: scale(.5); }
+    to   { opacity: 0; transform: scale(2.4); }
+  }
+
+  /* self-drawing checkmark (stroke-dashoffset) */
+  .draw-check__tick {
+    stroke-dasharray: 30; stroke-dashoffset: 30;
+    animation: drawTick .5s var(--ease-out) .12s forwards;
+  }
+  .draw-check__ring {
+    stroke-dasharray: 152; stroke-dashoffset: 152;
+    animation: drawRing .5s var(--ease-out) forwards;
+  }
+  @keyframes drawTick { to { stroke-dashoffset: 0; } }
+  @keyframes drawRing { to { stroke-dashoffset: 0; } }
+  .draw-check.is-pop { animation: pop .45s var(--ease-spring); }
+  @keyframes pop { from { transform: scale(.4); } to { transform: scale(1); } }
+
+  /* "Payment received" slide-up */
+  .pay--paid .pay__body > * { animation: enterUp .4s var(--ease-out) both; }
+  .pay--paid .pay__body > *:nth-child(2) { animation-delay: .12s; }
+  .pay--paid .pay__body > *:nth-child(3) { animation-delay: .18s; }
+  .pay--paid .pay__body > *:nth-child(4) { animation-delay: .24s; }
+  .pay--paid .pay__body > *:nth-child(5) { animation-delay: .30s; }
+
+  /* ===============================================================
+     DELIVERED — celebration overlay + status pill crossfade
+     =============================================================== */
+  .celebrate {
+    position: absolute; inset: 0; z-index: 95; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--success) 7%, transparent);
+    animation: fadeIn .2s ease both;
+  }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .badge.is-morph { animation: pillMorph .4s var(--ease-out); }
+  @keyframes pillMorph { from { opacity: .3; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+  /* floating +amount */
+  .floatup {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-mono); font-weight: 700; color: var(--success-strong);
+    pointer-events: none; z-index: 96; animation: floatUp 1.1s var(--ease-out) forwards;
+  }
+  @keyframes floatUp {
+    0%   { opacity: 0; transform: translate(-50%, 6px) scale(.9); }
+    25%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -34px) scale(1); }
+  }
+
+  /* delivered card leaving the active list */
+  .ocard--leaving { animation: cardLeave .5s var(--ease-out) forwards; overflow: hidden; }
+  @keyframes cardLeave {
+    0%   { opacity: 1; transform: translateX(0); max-height: 200px; margin-bottom: var(--sp-3); }
+    40%  { opacity: 0; transform: translateX(40px); max-height: 200px; }
+    100% { opacity: 0; transform: translateX(40px); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+  }
+
+  /* ===============================================================
+     MAP — live-location ring + route draw
+     =============================================================== */
+  .mapview__me-ring {
+    position: absolute; left: 50%; top: 50%; width: 18px; height: 18px;
+    margin: -9px 0 0 -9px; border-radius: 99px; border: 2px solid var(--primary);
+    animation: meRing 1.8s var(--ease-out) infinite;
+  }
+  @keyframes meRing { from { opacity: .6; transform: scale(.7); } to { opacity: 0; transform: scale(3); } }
+  .mapview__route path { stroke-dasharray: 360; stroke-dashoffset: 360; animation: routeDraw 1.4s var(--ease-out) .2s forwards; }
+  @keyframes routeDraw { to { stroke-dashoffset: 0; } }
+
+  /* NavSheet app rows stagger */
+  .sheet .napp { animation: enterUp .34s var(--ease-out) both; }
+  .sheet .napp:nth-child(2) { animation-delay: .04s; }
+  .sheet .napp:nth-child(3) { animation-delay: .09s; }
+  .sheet .napp:nth-child(4) { animation-delay: .14s; }
+  .sheet .napp:nth-child(5) { animation-delay: .19s; }
+  .sheet .napp:nth-child(6) { animation-delay: .24s; }
+
+  /* ===============================================================
+     SETTLE — cash sweeps to zero, handover digits roll in
+     =============================================================== */
+  .roll-digit { display: inline-block; animation: rollIn .5s var(--ease-spring) both; }
+  .roll-digit:nth-child(2) { animation-delay: .05s; }
+  .roll-digit:nth-child(3) { animation-delay: .10s; }
+  .roll-digit:nth-child(4) { animation-delay: .15s; }
+  .roll-digit:nth-child(5) { animation-delay: .20s; }
+  .roll-digit:nth-child(6) { animation-delay: .25s; }
+  .roll-digit:nth-child(7) { animation-delay: .30s; }
+  @keyframes rollIn { from { opacity: 0; transform: translateY(-70%) rotateX(-90deg); } to { opacity: 1; transform: none; } }
+
+  /* ===============================================================
+     SKELETON SHIMMER (loaders)
+     =============================================================== */
+  .skel {
+    position: relative; overflow: hidden;
+    background: var(--surface-inset); border-radius: var(--r-sm);
+  }
+  .skel::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
+    transform: translateX(-100%); animation: shimmer 1.3s ease-in-out infinite;
+  }
+  @keyframes shimmer { to { transform: translateX(100%); } }
+
+  /* ===============================================================
+     PULL-TO-REFRESH spinner ring
+     =============================================================== */
+  .ptr__ring { animation: ptrSpin .7s linear infinite; }
+  @keyframes ptrSpin { to { transform: rotate(360deg); } }
+
+  /* incoming-order countdown ring near-zero pulse */
+  .ring-countdown.is-urgent { animation: urgentPulse .5s ease-in-out infinite; }
+  @keyframes urgentPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+  /* hold-to-accept fill */
+  .hold__fill { transition: transform .05s linear; }
+  .hold.is-done .hold__check { animation: pop .4s var(--ease-spring); }
+
+  /* incoming-order sheet spring up */
+  .incoming { animation: sheetup .34s var(--ease-spring); }
+
+  /* change-due number tween highlight */
+  .change-banner__v.is-tween { animation: numTween .3s var(--ease-out); }
+  @keyframes numTween { from { transform: scale(1.12); opacity: .6; } to { transform: scale(1); opacity: 1; } }
+
+  /* count-up KPI subtle settle */
+  .countup.is-running { animation: none; }
+}
+
+/* =================================================================
+   STATIC PIECES (no animation, but motion-layer structure)
+   These render in ALL motion modes.
+   ================================================================= */
+
+/* tab bar relative positioning + sliding indicator track */
+.tabbar { position: relative; }
+.tab__ind {
+  position: absolute; top: 6px; height: 3px; pointer-events: none;
+  display: flex; justify-content: center; align-items: center; background: transparent;
+}
+.tab__ind > span { width: 22px; height: 3px; border-radius: 99px; background: var(--primary); display: block; }
+.tab { position: relative; }
+.tab__badge {
+  position: absolute; top: 2px; right: calc(50% - 20px);
+  min-width: 17px; height: 17px; padding: 0 5px; border-radius: 99px;
+  background: var(--error); color: #fff; font-size: 10px; font-weight: 700;
+  display: grid; place-items: center; font-family: var(--font-mono); z-index: 2;
+}
+
+/* odometer */
+.odo { display: inline-flex; overflow: hidden; vertical-align: bottom; }
+.odo__col { height: 1em; overflow: hidden; line-height: 1; }
+.odo__roll { display: flex; flex-direction: column; }
+.odo__d { height: 1em; display: flex; align-items: center; justify-content: center; }
+.odo__sep { display: inline-block; }
+
+/* goal progress bar */
+.goalbar { height: 8px; border-radius: 99px; background: var(--surface-inset); overflow: hidden; }
+.goalbar__fill { height: 100%; border-radius: 99px; background: var(--primary); width: 0; }
+.goal-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4) var(--sp-4); box-shadow: var(--shadow-xs); }
+.goal-row__top { display: flex; align-items: baseline; margin-bottom: 10px; }
+.goal-row__l { font-size: var(--fs-sm); font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+.goal-row__v { margin-left: auto; font-weight: 700; font-size: var(--fs-sm); }
+
+/* keep motion content from inducing horizontal scroll */
+.ca-scroll { overflow-x: hidden; }
+
+/* incoming-order sheet */
+.incoming-scrim { position: absolute; inset: 0; z-index: 88; background: var(--overlay); display: flex; align-items: flex-end; }
+.incoming {
+  width: 100%; background: var(--surface); border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: var(--sp-3) var(--sp-5) 30px; box-shadow: var(--shadow-lg);
+}
+.incoming__grip { width: 38px; height: 5px; border-radius: 99px; background: var(--border-strong); margin: 0 auto var(--sp-4); }
+.incoming__head { display: flex; align-items: center; gap: var(--sp-4); }
+.incoming__title { font-size: var(--fs-h2); font-weight: 700; letter-spacing: -.02em; }
+.incoming__sub { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: 1px; }
+.incoming__body { margin: var(--sp-4) 0; }
+
+/* countdown ring */
+.ring-countdown { position: relative; width: 64px; height: 64px; flex: 0 0 64px; }
+.ring-countdown svg { transform: rotate(-90deg); }
+.ring-countdown__num {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--font-mono); font-weight: 700; font-size: 20px; letter-spacing: -.02em;
+}
+
+/* hold-to-accept button */
+.hold {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 52px; width: 100%; border-radius: var(--r-md); border: none; cursor: pointer;
+  background: var(--surface-inset); color: var(--primary);
+  font-family: inherit; font-weight: 700; font-size: 16px; user-select: none;
+  border: 1.5px solid var(--primary-border);
+}
+.hold__fill {
+  position: absolute; inset: 0; z-index: -1; transform-origin: left center;
+  transform: scaleX(0); background: var(--primary);
+}
+.hold.is-filling { color: #fff; }
+.hold.is-done { color: #fff; background: var(--primary); }
+.hold__label { display: inline-flex; align-items: center; gap: 8px; }
+
+/* float-up anchor */
+.det-foot { position: relative; }
+
+/* QR ring wrapper keeps shimmer positioned */
+.qrcard { position: relative; }
+
+/* celebration check size */
+.celebrate__inner { display: grid; place-items: center; position: relative; }
+.celebrate__cap { margin-top: var(--sp-4); font-weight: 700; color: var(--success-strong); font-size: var(--fs-h3); }

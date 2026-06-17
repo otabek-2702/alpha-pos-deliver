@@ -1,0 +1,198 @@
+/* ============================================================
+   ALPHA POS — DESIGN TOKENS
+   High-contrast minimalism. Light-first, dark via [data-theme].
+   All values are named so they map 1:1 to Vuetify/Quasar theme keys.
+   ============================================================ */
+
+:root {
+  /* ---- Type families ---- */
+  --font-sans: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ---- Type scale (px / line-height) ---- */
+  --fs-display: 32px;  --lh-display: 40px;
+  --fs-h1: 24px;       --lh-h1: 32px;
+  --fs-h2: 19px;       --lh-h2: 28px;
+  --fs-h3: 15px;       --lh-h3: 22px;
+  --fs-body: 14px;     --lh-body: 22px;
+  --fs-sm: 13px;       --lh-sm: 20px;
+  --fs-label: 12px;    --lh-label: 16px;
+  --fs-micro: 11px;    --lh-micro: 14px;
+  --fs-kpi: 30px;      --lh-kpi: 36px;
+  --fs-kpi-lg: 34px;   --lh-kpi-lg: 40px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --tracking-label: 0.06em;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+  --sp-9: 48px; --sp-10: 64px;
+
+  /* ---- Radii ---- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* ============================================================
+     LIGHT THEME (default)
+     ============================================================ */
+
+  /* Surfaces & lines */
+  --bg: #F4F6F8;
+  --bg-subtle: #EEF1F4;
+  --surface: #FFFFFF;
+  --surface-2: #F8FAFB;
+  --surface-inset: #F1F4F7;
+  --border: #E4E7EC;
+  --border-strong: #D3D8E0;
+  --overlay: rgba(15, 23, 34, 0.42);
+
+  /* Text */
+  --text: #0F1722;
+  --text-secondary: #586172;
+  --text-tertiary: #8A929E;
+  --text-disabled: #B4BAC4;
+  --text-on-accent: #FFFFFF;
+
+  /* Brand accent (primary) */
+  --primary: #3A5BDB;
+  --primary-hover: #2E49B8;
+  --primary-active: #263EA0;
+  --primary-weak: #EDF0FD;
+  --primary-weak-2: #DEE4FB;
+  --primary-border: #C7D1F7;
+  --primary-ring: rgba(58, 91, 219, 0.28);
+  --on-primary: #FFFFFF;
+
+  /* Semantic — text-safe (AA on white) + soft tints */
+  --success: #15935A;
+  --success-strong: #0F7A4A;
+  --success-weak: #E6F4EC;
+  --success-border: #BDE3CD;
+
+  --warning: #B26A00;
+  --warning-strong: #8A5200;
+  --warning-weak: #FBF0DD;
+  --warning-border: #F0D7A6;
+
+  --error: #C8372A;
+  --error-strong: #A82C21;
+  --error-weak: #FBEBE9;
+  --error-border: #F1C8C3;
+
+  --info: #1180BE;
+  --info-strong: #0E6A9E;
+  --info-weak: #E6F3FA;
+  --info-border: #BCE0F1;
+
+  --neutral-weak: #EEF1F4;
+  --neutral-border: #DCE1E8;
+
+  /* Chart palette — fixed semantics across ALL charts */
+  --chart-revenue: #3A5BDB;   /* revenue / primary series — ALWAYS */
+  --chart-expense: #E0823C;   /* expenses / cost — ALWAYS */
+  --chart-cash: #15935A;      /* cash */
+  --chart-card: #3A5BDB;      /* card */
+  --chart-grid: #EAEDF1;
+  --chart-axis: #9AA2AE;
+  --chart-track: #EEF1F5;     /* unfilled bar / donut track */
+  --chart-target: #8A929E;    /* target / reference line */
+
+  /* Categorical (payment mix etc.) — max 5, calm not rainbow */
+  --c1: #3A5BDB;   /* blue   */
+  --c2: #15935A;   /* green  */
+  --c3: #E0823C;   /* orange */
+  --c4: #6E8BFF;   /* light blue */
+  --c5: #9AA3B2;   /* neutral (e.g. "Mixed") */
+
+  /* Elevation — restrained */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 6px 16px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.14), 0 4px 10px rgba(16, 24, 40, 0.06);
+  --shadow-focus: 0 0 0 3px var(--primary-ring);
+
+  --sidebar-w: 256px;
+  --topbar-h: 64px;
+}
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+[data-theme="dark"] {
+  --bg: #0E1219;
+  --bg-subtle: #0A0D13;
+  --surface: #161B24;
+  --surface-2: #1B212C;
+  --surface-inset: #11161E;
+  --border: #262E3B;
+  --border-strong: #323C4C;
+  --overlay: rgba(3, 6, 12, 0.6);
+
+  --text: #E8EBF1;
+  --text-secondary: #9AA4B2;
+  --text-tertiary: #6B7585;
+  --text-disabled: #4B5563;
+  --text-on-accent: #FFFFFF;
+
+  --primary: #6E8BFF;
+  --primary-hover: #819AFF;
+  --primary-active: #5C7BF5;
+  --primary-weak: #1C2640;
+  --primary-weak-2: #243154;
+  --primary-border: #34467A;
+  --primary-ring: rgba(110, 139, 255, 0.34);
+  --on-primary: #0B1020;
+
+  --success: #36C07E;
+  --success-strong: #45CE8C;
+  --success-weak: #14271E;
+  --success-border: #1F4733;
+
+  --warning: #E5A53B;
+  --warning-strong: #F0B557;
+  --warning-weak: #2A2113;
+  --warning-border: #4A3A1B;
+
+  --error: #EF6A5B;
+  --error-strong: #F48376;
+  --error-weak: #2C1714;
+  --error-border: #50271F;
+
+  --info: #45A8E0;
+  --info-strong: #5FB7EA;
+  --info-weak: #11242F;
+  --info-border: #1E3D4F;
+
+  --neutral-weak: #1E2530;
+  --neutral-border: #2C3543;
+
+  --chart-revenue: #6E8BFF;
+  --chart-expense: #E89A5C;
+  --chart-cash: #36C07E;
+  --chart-card: #6E8BFF;
+  --chart-grid: #232B38;
+  --chart-axis: #5B6572;
+  --chart-track: #222A36;
+  --chart-target: #6B7585;
+
+  --c1: #6E8BFF;
+  --c2: #36C07E;
+  --c3: #E89A5C;
+  --c4: #9DB0FF;
+  --c5: #7E8A9C;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
+  --shadow-focus: 0 0 0 3px var(--primary-ring);
+}

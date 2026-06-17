@@ -1,0 +1,100 @@
+/* ============================================================
+   COURIER APP · payment collection styles
+   ============================================================ */
+
+/* method chooser sheet rows */
+.paymethod { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: border-color .14s, background .14s; }
+.paymethod:active { background: var(--surface-2); }
+.paymethod__icon { width: 46px; height: 46px; border-radius: var(--r-md); display: grid; place-items: center; flex: 0 0 46px; }
+.paymethod__icon.t-cash { background: var(--success-weak); color: var(--success-strong); }
+.paymethod__icon.t-qr { background: var(--primary-weak); color: var(--primary); }
+.paymethod__icon.t-split { background: var(--warning-weak); color: var(--warning-strong); }
+.paymethod__main { flex: 1; min-width: 0; }
+.paymethod__t { font-weight: var(--fw-bold); font-size: 16px; }
+.paymethod__s { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: 1px; }
+
+/* ---------- Full-screen QR pay ---------- */
+.pay { position: absolute; inset: 0; z-index: 80; display: flex; flex-direction: column; background: var(--bg); opacity: 1; animation: payin .26s cubic-bezier(.2,.9,.3,1.02); }
+@keyframes payin { from { transform: translateY(14px); } }
+.pay--paid { background: var(--success-strong); }
+.pay__head { padding: 52px var(--sp-4) var(--sp-3); display: flex; align-items: center; gap: var(--sp-3); flex: 0 0 auto; }
+.pay__head .iconbtn { background: var(--surface); }
+.pay--paid .pay__head .iconbtn { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.25); color: #fff; }
+.pay__title { font-size: 18px; font-weight: var(--fw-bold); letter-spacing: -0.02em; }
+.pay--paid .pay__title, .pay--paid .pay__head { color: #fff; }
+.pay__body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) var(--sp-5) var(--sp-5); text-align: center; }
+.pay__amount-l { font-size: var(--fs-label); letter-spacing: .04em; text-transform: uppercase; color: var(--text-tertiary); font-weight: var(--fw-semibold); }
+.pay__amount { font-family: var(--font-mono); font-size: 38px; font-weight: var(--fw-bold); letter-spacing: -0.04em; margin-top: 2px; }
+.pay__order { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: 2px; }
+
+.qrcard { background: #fff; border-radius: var(--r-xl); padding: 22px; margin-top: var(--sp-5); box-shadow: var(--shadow-lg); position: relative; }
+.qrcard svg { display: block; width: 232px; height: 232px; }
+.qrcard__logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 13px; background: var(--primary); color: #fff; display: grid; place-items: center; font-weight: var(--fw-bold); font-size: 26px; box-shadow: 0 0 0 6px #fff; }
+
+.pay__scan-t { font-size: 19px; font-weight: var(--fw-bold); margin-top: var(--sp-5); }
+.pay__scan-s { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: 4px; max-width: 260px; }
+
+.pay__providers { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); flex-wrap: wrap; justify-content: center; }
+.provchip { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px 0 8px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-secondary); }
+.provchip__m { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: var(--fw-bold); }
+
+.pay__waiting { display: inline-flex; align-items: center; gap: 9px; margin-top: var(--sp-5); padding: 9px 16px; border-radius: 99px; background: var(--info-weak); border: 1px solid var(--info-border); color: var(--info-strong); font-weight: var(--fw-semibold); font-size: var(--fs-sm); }
+.spinner { width: 15px; height: 15px; border-radius: 99px; border: 2px solid currentColor; border-top-color: transparent; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pay__rt { font-size: var(--fs-label); color: var(--text-tertiary); margin-top: var(--sp-2); }
+
+.pay__foot { flex: 0 0 auto; padding: var(--sp-3) var(--sp-4) 28px; display: flex; flex-direction: column; gap: var(--sp-2); }
+
+/* paid success state */
+.paid-burst { width: 96px; height: 96px; border-radius: 99px; background: rgba(255,255,255,.16); display: grid; place-items: center; margin: 8vh auto var(--sp-5); animation: pop .4s cubic-bezier(.2,1.4,.4,1); }
+.paid-burst__ring { width: 96px; height: 96px; border-radius: 99px; display: grid; place-items: center; background: #fff; color: var(--success-strong); }
+@keyframes pop { from { transform: scale(.4); } }
+.paid-amount { font-family: var(--font-mono); font-size: 40px; font-weight: var(--fw-bold); letter-spacing: -0.04em; color: #fff; }
+.paid-via { color: rgba(255,255,255,.85); margin-top: var(--sp-2); font-size: var(--fs-body); display: inline-flex; align-items: center; gap: 8px; }
+.paid-receipt { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); border-radius: var(--r-lg); padding: var(--sp-4); margin-top: var(--sp-5); width: 100%; max-width: 300px; }
+.paid-receipt__row { display: flex; justify-content: space-between; font-size: var(--fs-sm); color: rgba(255,255,255,.85); padding: 5px 0; }
+.paid-receipt__row b { color: #fff; font-family: var(--font-mono); }
+
+/* ---------- amount keypad / input ---------- */
+.amt-display { width: 100%; text-align: center; margin-top: var(--sp-4); }
+.amt-display__v { font-family: var(--font-mono); font-size: 40px; font-weight: var(--fw-bold); letter-spacing: -0.04em; }
+.amt-display__cur { font-size: 18px; color: var(--text-tertiary); font-weight: var(--fw-medium); }
+.amt-chips { display: flex; gap: var(--sp-2); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-4); }
+.amt-chip { height: 38px; padding: 0 15px; border-radius: 99px; background: var(--surface-inset); border: 1px solid var(--border); font-family: var(--font-mono); font-weight: var(--fw-semibold); font-size: var(--fs-sm); cursor: pointer; color: var(--text); }
+.amt-chip.is-on { background: var(--primary-weak); border-color: var(--primary-border); color: var(--primary); }
+
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: var(--sp-5); }
+.key { height: 56px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 22px; font-weight: var(--fw-bold); color: var(--text); cursor: pointer; display: grid; place-items: center; transition: background .1s; }
+.key:active { background: var(--surface-2); }
+.key--fn { font-family: var(--font-sans); font-size: 15px; color: var(--text-secondary); }
+
+.change-banner { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: var(--sp-4); border-radius: var(--r-lg); margin-top: var(--sp-4); }
+.change-banner.ok { background: var(--success-weak); border: 1px solid var(--success-border); }
+.change-banner.short { background: var(--error-weak); border: 1px solid var(--error-border); }
+.change-banner__l { font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.change-banner.ok .change-banner__l { color: var(--success-strong); }
+.change-banner.short .change-banner__l { color: var(--error-strong); }
+.change-banner__v { font-family: var(--font-mono); font-size: 22px; font-weight: var(--fw-bold); }
+
+/* split inputs */
+.split-row { display: flex; flex-direction: column; gap: 7px; }
+.split-input { display: flex; align-items: center; gap: var(--sp-2); height: 56px; padding: 0 var(--sp-4); border-radius: var(--r-md); background: var(--surface-inset); border: 1px solid var(--border-strong); }
+.split-input.is-focus { border-color: var(--primary); box-shadow: var(--shadow-focus); }
+.split-input__ic { width: 34px; height: 34px; border-radius: var(--r-sm); display: grid; place-items: center; flex: 0 0 34px; }
+.split-input input { border: none; outline: none; background: transparent; font-family: var(--font-mono); font-size: 20px; font-weight: var(--fw-bold); color: var(--text); width: 100%; min-width: 0; }
+.split-meter { height: 8px; border-radius: 99px; background: var(--surface-inset); overflow: hidden; display: flex; }
+.split-meter__cash { background: var(--success); }
+.split-meter__qr { background: var(--primary); }
+
+/* ---------- reconciliation / cash tab ---------- */
+.recon-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+.recon-cell { background: var(--surface); padding: var(--sp-4); }
+.recon-cell--wide { grid-column: 1 / -1; }
+.recon-cell__l { font-size: var(--fs-sm); color: var(--text-secondary); font-weight: var(--fw-medium); display: flex; align-items: center; gap: 6px; }
+.recon-cell__v { font-family: var(--font-mono); font-size: 24px; font-weight: var(--fw-bold); letter-spacing: -0.03em; margin-top: 4px; }
+.recon-cell__v small { font-size: 13px; color: var(--text-tertiary); font-family: var(--font-sans); }
+.recon-cell--accent { background: var(--ink); }
+.recon-cell--accent .recon-cell__l { color: rgba(255,255,255,.6); }
+.recon-cell--accent .recon-cell__v { color: var(--ink-fg); }
+
+.handover-code { font-family: var(--font-mono); font-size: 30px; font-weight: var(--fw-bold); letter-spacing: .08em; text-align: center; padding: var(--sp-4); border: 2px dashed var(--border-strong); border-radius: var(--r-lg); background: var(--surface-inset); }

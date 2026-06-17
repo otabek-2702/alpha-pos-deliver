@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Alpha POS Courier",
+    "slug": "alpha-pos-courier",
+    "scheme": "alphacourier",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "uz.alphapos.courier",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "yandexnavi",
+          "yandexmaps",
+          "comgooglemaps",
+          "dgis"
+        ]
+      }
+    },
+    "android": {
+      "package": "uz.alphapos.courier",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0E13",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router", "expo-font", "expo-secure-store"],
+    "extra": {
+      "apiBaseUrl": "",
+      "wsBaseUrl": "",
+      "useMock": true,
+      "router": {}
+    }
+  }
+}
