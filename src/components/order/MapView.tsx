@@ -153,7 +153,8 @@ export function MapView({ order }: { order: ActiveOrder }) {
           transform: [{ translateX: -17 }, { translateY: -34 }],
         }}
       >
-        <Icon name="pin" size={34} weight={2} color={colors.error} />
+        {/* Prototype's drop-off pin inherits the brand color (currentColor), not red. */}
+        <Icon name="pin" size={34} weight={2} color={colors.primary} />
       </View>
 
       <View

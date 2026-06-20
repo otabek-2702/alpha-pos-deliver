@@ -63,6 +63,8 @@ export type IncomingOrder = {
   payment: OrderPayment;
   customer: { name: string };
   address: { text: string; distanceKm: number };
+  /** Server hold-to-accept window (seconds) from order.assigned `expires_in`. */
+  expiresIn?: number;
 };
 
 export type Courier = {
@@ -146,8 +148,12 @@ export type PaymentEvent = {
   data: {
     order_id: number;
     payment_id?: number;
-    provider?: PaymentProvider;
+    // Backend courier-payment vocabulary is CASH/CARD/QR; mock emits gateway
+    // names. Kept as a free string so an unknown provider never drops the frame.
+    provider?: string;
     method?: string;
     amount?: number;
+    status?: string;
+    is_paid?: boolean;
   };
 };

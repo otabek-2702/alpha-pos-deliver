@@ -82,7 +82,12 @@ export const reconciliationApiSchema = z
 /* ---- create_payment response (§3) ---- */
 export const createPaymentResponseSchema = z.object({
   payment_id: z.number().int(),
-  status: z.enum(['pending', 'paid', 'failed', 'refunded', 'partial']),
+  // The record-only backend returns UPPERCASE status (PAID/PENDING/REFUNDED/
+  // FAILED); lowercase it so the app's state is uniform.
+  status: z
+    .string()
+    .transform((s) => s.toLowerCase())
+    .pipe(z.enum(['pending', 'paid', 'failed', 'refunded', 'partial'])),
   link: z.string().optional(),
   qr_png: z.string().optional(),
 });
@@ -94,9 +99,14 @@ export const paymentEventSchema = z.object({
   data: z.object({
     order_id: z.number().int(),
     payment_id: z.number().int().optional(),
-    provider: z.enum(['cash', 'payme', 'click', 'uzum', 'paynet', 'unified_qr']).optional(),
+    // The backend's courier-payment vocabulary is CASH / CARD / QR (uppercase);
+    // mock mode emits gateway names (payme/click/…). Accept any string and let
+    // the UI pretty-print it — never reject the frame on an unknown provider.
+    provider: z.string().optional(),
     method: z.string().optional(),
     amount: z.number().optional(),
+    status: z.string().optional(),
+    is_paid: z.boolean().optional(),
   }),
 });
 

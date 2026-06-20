@@ -42,6 +42,9 @@ export function useCourierRealtime() {
             payment: (d.payment === 'PAID' ? 'PAID' : 'UNPAID') as OrderPayment,
             customer: { name: cust.name ?? '' },
             address: { text: addr.text ?? '', distanceKm: addr.distance_km ?? 0 },
+            // server's hold-to-accept window — drives the countdown ring so the
+            // client clock matches the server's accept deadline (not a hardcoded 20s)
+            expiresIn: typeof d.expires_in === 'number' ? d.expires_in : 20,
           };
           useAppStore.getState().receiveIncoming(incoming);
           break;

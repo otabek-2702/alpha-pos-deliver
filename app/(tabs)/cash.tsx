@@ -13,6 +13,7 @@ import {
   Button,
   Card,
   CardHeader,
+  FeedError,
   HeaderBar,
   Screen,
   ScrollArea,
@@ -24,20 +25,38 @@ import {
 } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
 import { LedRow } from '@/components/LedRow';
-import { useBalance, useReconciliation } from '@/api/hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { qk, useBalance, useReconciliation, useSettleShift } from '@/api/hooks';
+import { USE_MOCK } from '@/api/config';
 import { useT } from '@/i18n';
 import { money, signed } from '@/lib/format';
+import { emptyBalance, emptyRecon } from '@/data/empty';
 import * as fx from '@/data/fixtures';
 
 export default function CashScreen() {
   const { colors, radii, space } = useTheme();
   const T = useT();
-  const r = useReconciliation().data ?? fx.recon;
-  const bal = useBalance().data ?? { heldTotal: fx.heldTotal, held: fx.held, ledger: fx.ledger };
+  const qc = useQueryClient();
+  const reconQ = useReconciliation();
+  const balanceQ = useBalance();
+  const r = reconQ.data ?? (USE_MOCK ? fx.recon : emptyRecon);
+  const bal =
+    balanceQ.data ??
+    (USE_MOCK
+      ? { balance: fx.balance, heldTotal: fx.heldTotal, held: fx.held, ledger: fx.ledger }
+      : emptyBalance);
+  const feedError = !USE_MOCK && (reconQ.isError || balanceQ.isError);
+  const settleM = useSettleShift();
   const [handover, setHandover] = useState(false);
   const [settled, setSettled] = useState(false);
-  const [cashNow, setCashNow] = useState(r.cashInHand);
+  // Derive from the query (not a once-seeded useState that goes stale when
+  // reconciliation resolves); zero it once the shift is actually settled.
+  const cashNow = settled ? 0 : r.cashInHand;
   const totalCollected = r.collectedCash + r.qrCollected;
+  const onRetry = () => {
+    void qc.invalidateQueries({ queryKey: qk.recon });
+    void qc.invalidateQueries({ queryKey: qk.balance });
+  };
 
   return (
     <Screen>
@@ -55,6 +74,7 @@ export default function CashScreen() {
 
       <ScrollArea tabPad testID="screen-cash">
         <Stack gap={space[4]}>
+          {feedError ? <FeedError onRetry={onRetry} testID="cash-error" /> : null}
           {/* recon hero */}
           <View
             style={{
@@ -239,10 +259,15 @@ export default function CashScreen() {
               iconName="check"
               title={T('confirm_settle')}
               onPress={() => {
-                setSettled(true);
                 setHandover(false);
-                setCashNow(0);
-                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                // POST /courier/shift/settle/ (no-op in mock); only flip to
+                // "Settled" + invalidate recon/balance on success.
+                settleM.mutate(undefined, {
+                  onSuccess: () => {
+                    setSettled(true);
+                    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  },
+                });
               }}
               testID="handover-confirm"
             />

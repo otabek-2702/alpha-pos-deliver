@@ -77,6 +77,8 @@ export function QRPayScreen({
   }, [order.id, qrResult, amount, status]);
 
   function settleCash() {
+    // Customer pays cash instead — record it server-side (no-op in mock).
+    void createPayment({ order, provider: 'cash', amount }).catch(() => {});
     setMethod(T('cash'));
     setStatus('paid');
   }

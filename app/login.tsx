@@ -10,7 +10,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { Button, Segmented, Text } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { useAppStore } from '@/store/appStore';
-import { login as apiLogin } from '@/api/client';
+import { useLogin } from '@/api/hooks';
 import { setToken } from '@/lib/secureToken';
 import * as fx from '@/data/fixtures';
 
@@ -22,6 +22,9 @@ export default function LoginScreen() {
   const [pw, setPw] = useState('');
   const [pwFocus, setPwFocus] = useState(false);
   const [phoneFocus, setPhoneFocus] = useState(false);
+
+  const login = useLogin();
+  const [error, setError] = useState<string | null>(null);
 
   const [scan] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -35,17 +38,25 @@ export default function LoginScreen() {
     return () => loop.stop();
   }, [scan]);
 
-  async function doLogin() {
-    try {
-      const token = await apiLogin(mode === 'phone' ? { phone, password: pw } : { qr: 'scanned' });
-      // Persist best-effort; never block navigation on a slow/locked keystore.
-      void setToken(token).catch(() => {});
-      setLoggedIn(true);
-      router.replace('/orders');
-    } catch (e) {
-      console.warn('login failed', e);
-    }
+  function doLogin() {
+    setError(null);
+    login.mutate(mode === 'phone' ? { phone, password: pw } : { qr: 'scanned' }, {
+      onSuccess: (token) => {
+        // Persist best-effort; never block navigation on a slow/locked keystore.
+        void setToken(token).catch(() => {});
+        setLoggedIn(true);
+        router.replace('/orders');
+      },
+      onError: () =>
+        setError(
+          mode === 'phone'
+            ? 'Invalid phone or password. Check your details and try again.'
+            : "Couldn't sign in. Check your connection and try again.",
+        ),
+    });
   }
+
+  const pending = login.isPending;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }} testID="screen-login">
@@ -107,6 +118,28 @@ export default function LoginScreen() {
             { key: 'phone', label: 'Phone', icon: 'phone' },
           ]}
         />
+
+        {error ? (
+          <View
+            testID="login-error"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              padding: 12,
+              marginBottom: 16,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: colors.errorBorder,
+              backgroundColor: colors.errorWeak,
+            }}
+          >
+            <Icon name="info" size={16} color={colors.error} />
+            <Text variant="sm" weight="600" color="error" style={{ flex: 1 }}>
+              {error}
+            </Text>
+          </View>
+        ) : null}
 
         {mode === 'qr' ? (
           <View style={{ gap: space[4] }}>
@@ -171,12 +204,25 @@ export default function LoginScreen() {
                 }}
               />
               <Icon name="qr" size={68} color="rgba(255,255,255,0.22)" />
+              <Text
+                variant="sm"
+                weight="500"
+                style={{
+                  position: 'absolute',
+                  bottom: 22,
+                  textAlign: 'center',
+                  color: 'rgba(255,255,255,0.6)',
+                }}
+              >
+                Point the camera at your staff QR code
+              </Text>
             </View>
             <Button
               variant="primary"
               iconName="scan"
-              title="I scanned the code"
+              title={pending ? 'Signing in…' : 'I scanned the code'}
               onPress={doLogin}
+              disabled={pending}
               testID="login-qr-submit"
             />
             <Text variant="sm" color="textTertiary" style={{ textAlign: 'center' }}>
@@ -238,8 +284,9 @@ export default function LoginScreen() {
             <Button
               variant="primary"
               iconName="arrowright"
-              title="Log in"
+              title={pending ? 'Signing in…' : 'Log in'}
               onPress={doLogin}
+              disabled={pending}
               testID="login-phone-submit"
             />
             <Text variant="sm" color="textTertiary" style={{ textAlign: 'center' }}>

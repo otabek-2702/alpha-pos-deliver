@@ -4,7 +4,7 @@
    The prototype's Tweaks (theme / language / accent / preview knobs)
    are surfaced here as real in-app settings.
    ============================================================ */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -29,13 +29,28 @@ import type { RowTone } from '@/components/ui';
 import { useAppStore, type Lang } from '@/store/appStore';
 import { ACCENT_OPTIONS, type AccentKey } from '@/theme/tokens';
 import { clearToken } from '@/lib/secureToken';
+import { useCourier, useSetOnline } from '@/api/hooks';
+import { USE_MOCK } from '@/api/config';
+import { emptyCourier } from '@/data/empty';
 import * as fx from '@/data/fixtures';
 
 export default function ProfileScreen() {
   const { colors, isDark, radii, space } = useTheme();
-  const c = fx.courier;
+  const courierQ = useCourier();
+  const c = courierQ.data ?? (USE_MOCK ? fx.courier : emptyCourier);
   const online = useAppStore((s) => s.online);
   const setOnline = useAppStore((s) => s.setOnline);
+  const onlineM = useSetOnline();
+  // Reflect the server's shift state on load (and after a toggle's refetch).
+  useEffect(() => {
+    if (!USE_MOCK && courierQ.data) setOnline(courierQ.data.online);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courierQ.data?.online]);
+  const toggleOnline = () => {
+    const next = !online;
+    setOnline(next); // optimistic
+    onlineM.mutate(next); // POST /courier/shift/online/ (no-op in mock)
+  };
   const shareLoc = useAppStore((s) => s.shareLoc);
   const setShareLoc = useAppStore((s) => s.setShareLoc);
   const themePref = useAppStore((s) => s.themePref);
@@ -145,7 +160,7 @@ export default function ProfileScreen() {
                 title="On shift"
                 subtitle="Receive new order assignments"
                 on={online}
-                onToggle={() => setOnline(!online)}
+                onToggle={toggleOnline}
                 testID="profile-online"
               />
               <Divider />

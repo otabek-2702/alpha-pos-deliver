@@ -36,8 +36,8 @@ import { SplitSheet } from '@/payments/SplitSheet';
 import { QRPayScreen } from '@/payments/QRPayScreen';
 import { useQueryClient } from '@tanstack/react-query';
 import { subscribePaymentEvents } from '@/realtime/ws';
-import { refundPayment, updateOrderStatus } from '@/api/client';
-import { qk, useActiveOrders } from '@/api/hooks';
+import { createPayment, updateOrderStatus } from '@/api/client';
+import { qk, useActiveOrders, useRefundPayment } from '@/api/hooks';
 import { useAppStore } from '@/store/appStore';
 import { useT } from '@/i18n';
 import { applyOrderStagePreview } from '@/lib/preview';
@@ -57,6 +57,7 @@ export default function OrderDetailScreen() {
   const qrDemo = useAppStore((s) => s.qrDemo);
   const showPush = useAppStore((s) => s.showPush);
   const qc = useQueryClient();
+  const refundM = useRefundPayment();
 
   const activeRaw = useActiveOrders().data ?? fx.active;
   const order = applyOrderStagePreview(activeRaw, orderStage).find((o) => o.id === id);
@@ -82,6 +83,20 @@ export default function OrderDetailScreen() {
     });
     return () => ch.close();
   }, [order]);
+
+  // Follow the server FORWARD: if the kitchen marks this order READY or another
+  // device advances it (refetched via the realtime layer), move the local view
+  // forward — never backward, so an in-flight optimistic advance isn't reverted
+  // before its POST lands. Payment only ever moves UNPAID→PAID here; refunds go
+  // through the payment.refunded WS path above.
+  useEffect(() => {
+    if (!order) return;
+    // Subscribe local view to the server snapshot of this order; forward-only.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStep((prev) => (STEPS.indexOf(order.step) > STEPS.indexOf(prev) ? order.step : prev));
+    if (order.payment === 'PAID') setPay('PAID');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.step, order?.payment]);
 
   if (!order) {
     return (
@@ -259,12 +274,18 @@ export default function OrderDetailScreen() {
                 <Spacer />
                 <Pressable
                   testID="detail-refund"
-                  onPress={() => refundPayment({ orderId: order.id })}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                  disabled={refundM.isPending}
+                  onPress={() => refundM.mutate({ orderId: order.id })}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    opacity: refundM.isPending ? 0.5 : 1,
+                  }}
                 >
                   <Icon name="refresh" size={13} color={colors.error} />
                   <Text variant="sm" weight="600" color="error">
-                    {T('refund')}
+                    {refundM.isPending ? T('refunding') : T('refund')}
                   </Text>
                 </Pressable>
               </View>
@@ -421,7 +442,17 @@ export default function OrderDetailScreen() {
           order={order}
           T={T}
           onClose={() => setFlow(null)}
-          onConfirm={() => handlePaid('cash')}
+          onConfirm={() => {
+            // Record the cash collection so the server ledger (balance / shift
+            // reconciliation) reflects it. No-op in mock mode.
+            void createPayment({ order, provider: 'cash', amount: order.total })
+              .then(() => {
+                void qc.invalidateQueries({ queryKey: qk.balance });
+                void qc.invalidateQueries({ queryKey: qk.recon });
+              })
+              .catch(() => {});
+            handlePaid('cash');
+          }}
         />
       ) : null}
       {flow === 'split' ? (

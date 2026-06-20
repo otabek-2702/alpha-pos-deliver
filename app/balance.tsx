@@ -8,27 +8,46 @@ import React from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
-import { Card, DetailHeader, Screen, ScrollArea, SectionLabel, Stack, Text } from '@/components/ui';
+import {
+  Card,
+  DetailHeader,
+  FeedError,
+  Screen,
+  ScrollArea,
+  SectionLabel,
+  Stack,
+  Text,
+} from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { LedRow } from '@/components/LedRow';
-import { useBalance } from '@/api/hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { qk, useBalance } from '@/api/hooks';
+import { USE_MOCK } from '@/api/config';
 import { money, signed } from '@/lib/format';
+import { emptyBalance } from '@/data/empty';
 import * as fx from '@/data/fixtures';
 
 export default function BalanceScreen() {
   const { colors, radii, shadow, space } = useTheme();
-  const bal = useBalance().data ?? {
-    balance: fx.balance,
-    heldTotal: fx.heldTotal,
-    held: fx.held,
-    ledger: fx.ledger,
-  };
+  const qc = useQueryClient();
+  const balanceQ = useBalance();
+  const bal =
+    balanceQ.data ??
+    (USE_MOCK
+      ? { balance: fx.balance, heldTotal: fx.heldTotal, held: fx.held, ledger: fx.ledger }
+      : emptyBalance);
 
   return (
     <Screen>
       <DetailHeader title="Balance" onBack={() => router.back()} backTestID="balance-back" />
       <ScrollArea tabPad testID="screen-balance">
         <Stack gap={space[4]}>
+          {!USE_MOCK && balanceQ.isError ? (
+            <FeedError
+              onRetry={() => void qc.invalidateQueries({ queryKey: qk.balance })}
+              testID="balance-error"
+            />
+          ) : null}
           {/* hero */}
           <View
             style={{

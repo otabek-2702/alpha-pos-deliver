@@ -9,6 +9,7 @@ import {
   Badge,
   Card,
   CardHeader,
+  FeedError,
   HeaderBar,
   KPITile,
   Screen,
@@ -21,15 +22,28 @@ import {
 import type { KpiTone } from '@/components/ui';
 import { CompletedOrderCard } from '@/components/order/OrderCard';
 import { CountUp } from '@/components/motion';
-import { useCompletedOrders, useCourier, useStats } from '@/api/hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { qk, useCompletedOrders, useCourier, useStats } from '@/api/hooks';
+import { USE_MOCK } from '@/api/config';
 import type { IconName } from '@/components/Icon';
+import { emptyCourier, emptyStats } from '@/data/empty';
 import * as fx from '@/data/fixtures';
 
 export default function TodayScreen() {
   const { colors, space } = useTheme();
-  const s = useStats().data ?? fx.stats;
-  const completed = useCompletedOrders().data ?? fx.completed;
-  const branch = (useCourier().data ?? fx.courier).branch;
+  const qc = useQueryClient();
+  const statsQ = useStats();
+  const completedQ = useCompletedOrders();
+  const courierQ = useCourier();
+  const s = statsQ.data ?? (USE_MOCK ? fx.stats : emptyStats);
+  const completed = completedQ.data ?? (USE_MOCK ? fx.completed : []);
+  const branch = (courierQ.data ?? (USE_MOCK ? fx.courier : emptyCourier)).branch;
+  const feedError = !USE_MOCK && (statsQ.isError || completedQ.isError);
+  const onRetry = () => {
+    [qk.stats, qk.completed, qk.courier].forEach(
+      (queryKey) => void qc.invalidateQueries({ queryKey }),
+    );
+  };
 
   const maxN = Math.max(...s.byHour.map((x) => x.n), 1);
   const round = (n: number) => String(Math.round(n));
@@ -76,6 +90,7 @@ export default function TodayScreen() {
 
       <ScrollArea tabPad testID="screen-today">
         <Stack gap={space[4]}>
+          {feedError ? <FeedError onRetry={onRetry} testID="today-error" /> : null}
           <Stack gap={space[3]}>
             {pairs.map((pair, i) => (
               <View key={i} style={{ flexDirection: 'row', gap: space[3] }}>

@@ -58,6 +58,7 @@ type AppState = {
   simulateIncoming: () => void;
   receiveIncoming: (o: IncomingOrder) => void;
   acceptIncoming: () => void;
+  rollbackAccept: () => void;
   dismissIncoming: () => void;
   logout: () => void;
 };
@@ -90,6 +91,8 @@ export const useAppStore = create<AppState>((set) => ({
   simulateIncoming: () => set({ incoming: incomingCandidate }),
   receiveIncoming: (o) => set({ incoming: o }), // real server order.assigned
   acceptIncoming: () => set((s) => ({ incoming: null, orderCount: s.orderCount + 1 })),
+  // server rejected the accept (window expired / reassigned) — undo the optimistic badge bump
+  rollbackAccept: () => set((s) => ({ orderCount: Math.max(0, s.orderCount - 1) })),
   dismissIncoming: () => set({ incoming: null }),
   logout: () => set({ loggedIn: false, push: null, incoming: null }),
 }));

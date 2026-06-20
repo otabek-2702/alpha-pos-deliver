@@ -49,6 +49,7 @@ const en = {
   held_note:
     "You'll collect this {v} from the client. Bring it to the cashier on your next visit — they mark the order paid and it clears.",
   refund: 'Refund',
+  refunding: 'Refunding…',
   refund_q: 'Refund this payment?',
   refunded: 'Refunded',
   // earnings / reconciliation
@@ -88,6 +89,8 @@ const en = {
   hold_to_accept: 'Hold to accept',
   order_ready_title: 'Order ready',
   order_ready_body: 'Ready for pickup at the counter',
+  order_taken_title: 'Order no longer available',
+  order_taken_body: 'The accept window closed or it was reassigned.',
   accepted: 'Accepted',
   decline: 'Decline',
   collect_cash: 'Collect cash',
@@ -133,6 +136,7 @@ const ru: Record<StringKey, string> = {
   held_note:
     'Эти {v} вы получите от клиента. Привезите их кассиру в следующий раз — он отметит заказ оплаченным, и сумма спишется.',
   refund: 'Возврат',
+  refunding: 'Возврат…',
   refund_q: 'Вернуть этот платёж?',
   refunded: 'Возвращено',
   earnings: 'Заработок',
@@ -170,6 +174,8 @@ const ru: Record<StringKey, string> = {
   hold_to_accept: 'Удерживайте, чтобы принять',
   order_ready_title: 'Заказ готов',
   order_ready_body: 'Готов к выдаче на стойке',
+  order_taken_title: 'Заказ больше недоступен',
+  order_taken_body: 'Время на приём истекло или его переназначили.',
   accepted: 'Принят',
   decline: 'Отклонить',
   collect_cash: 'Наличные',
@@ -213,6 +219,7 @@ const uz: Record<StringKey, string> = {
   held_note:
     "Bu {v} ni mijozdan olasiz. Keyingi kelganingizda kassirga olib keling — u buyurtmani to'langan deb belgilaydi va summa yopiladi.",
   refund: 'Qaytarish',
+  refunding: 'Qaytarilmoqda…',
   refund_q: "Bu to'lov qaytarilsinmi?",
   refunded: 'Qaytarildi',
   earnings: 'Daromad',
@@ -250,6 +257,8 @@ const uz: Record<StringKey, string> = {
   hold_to_accept: 'Qabul qilish uchun ushlab turing',
   order_ready_title: 'Buyurtma tayyor',
   order_ready_body: 'Peshtaxtadan olib ketishga tayyor',
+  order_taken_title: 'Buyurtma endi mavjud emas',
+  order_taken_body: 'Qabul qilish vaqti tugadi yoki qayta tayinlandi.',
   accepted: 'Qabul qilindi',
   decline: 'Rad etish',
   collect_cash: "Naqd yig'ish",

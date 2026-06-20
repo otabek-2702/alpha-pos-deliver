@@ -9,4 +9,5 @@ export { IconButton } from './IconButton';
 export { SectionLabel, Divider, Avatar } from './bits';
 export { ListRow, type RowTone } from './ListRow';
 export { KPITile, type KpiTone } from './KPITile';
+export { FeedError } from './FeedError';
 export { Screen, HeaderBar, DetailHeader, ScrollArea, Stack, Spacer } from './layout';

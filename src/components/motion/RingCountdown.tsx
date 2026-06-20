@@ -37,9 +37,10 @@ export function RingCountdown({
   const offset = useSharedValue(0);
   const scale = useSharedValue(1);
 
+  // Countdown ALWAYS runs — even under reduce-motion. Previously the whole
+  // timer lived behind the reduce guard, so a reduce-motion courier's incoming
+  // sheet never auto-dismissed and the server window expired with no cue.
   useEffect(() => {
-    if (reduce) return;
-    offset.value = withTiming(CIRC, { duration: seconds * 1000, easing: Easing.linear });
     const start = Date.now();
     const iv = setInterval(() => {
       const l = Math.max(0, seconds - (Date.now() - start) / 1000);
@@ -53,6 +54,16 @@ export function RingCountdown({
     // run once on mount (matches prototype's [] deps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Ring depletion animation is the only motion piece gated by reduce-motion.
+  useEffect(() => {
+    if (reduce) {
+      offset.value = 0; // static full ring; the number still ticks
+      return;
+    }
+    offset.value = withTiming(CIRC, { duration: seconds * 1000, easing: Easing.linear });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduce]);
 
   const urgent = left <= 5;
   useEffect(() => {

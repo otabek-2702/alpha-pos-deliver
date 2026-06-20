@@ -211,11 +211,15 @@ export async function createPayment(args: {
       link: payLink(args.order, args.provider),
     };
   }
+  // The backend is record-only with a CASH / CARD / QR vocabulary (no live
+  // gateway). Map the app's provider onto it: cash → CASH, every gateway
+  // (payme/click/uzum/paynet/unified_qr) → QR.
+  const backendProvider = args.provider === 'cash' ? 'CASH' : 'QR';
   return api('/payments/create/', createPaymentResponseSchema, {
     method: 'POST',
     body: JSON.stringify({
       order_id: args.order.id,
-      provider: args.provider,
+      provider: backendProvider,
       amount: args.amount,
     }),
   });

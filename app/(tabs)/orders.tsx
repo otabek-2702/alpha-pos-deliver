@@ -4,25 +4,30 @@
    ("Cash to hand in" = heldTotal), Odometer quick-stats, daily-goal
    bar. Header + lists unchanged.
    ============================================================ */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@/theme/ThemeProvider';
-import { Avatar, HeaderBar, Screen, Segmented, Stack, Text } from '@/components/ui';
+import { Avatar, FeedError, HeaderBar, Screen, Segmented, Stack, Text } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { ActiveOrderCard, CompletedOrderCard } from '@/components/order/OrderCard';
 import { GoalBar, Odometer, PullToRefresh, SkeletonOrderCard } from '@/components/motion';
 import {
+  qk,
   useActiveOrders,
   useBalance,
   useCompletedOrders,
   useCourier,
   useNotifications,
+  useSetOnline,
   useStats,
 } from '@/api/hooks';
+import { USE_MOCK } from '@/api/config';
 import { useAppStore } from '@/store/appStore';
 import { applyOrderStagePreview } from '@/lib/preview';
 import { money } from '@/lib/format';
+import { emptyBalance, emptyCourier, emptyStats } from '@/data/empty';
 import * as fx from '@/data/fixtures';
 
 export default function OrdersScreen() {
@@ -31,18 +36,54 @@ export default function OrdersScreen() {
   const online = useAppStore((s) => s.online);
   const setOnline = useAppStore((s) => s.setOnline);
   const orderStage = useAppStore((s) => s.orderStage);
+  const qc = useQueryClient();
+  const onlineM = useSetOnline();
 
-  const courier = useCourier().data ?? fx.courier;
-  const stats = useStats().data ?? fx.stats;
-  const balance = useBalance().data ?? {
-    balance: fx.balance,
-    heldTotal: fx.heldTotal,
-    held: fx.held,
-    ledger: fx.ledger,
+  const courierQ = useCourier();
+  const statsQ = useStats();
+  const balanceQ = useBalance();
+  const activeQ = useActiveOrders();
+  const completedQ = useCompletedOrders();
+  const notifQ = useNotifications();
+
+  // Fixtures fall back ONLY in mock mode; in real mode a still-loading or FAILED
+  // query shows empty (zeroed) data + a FeedError banner — never fake "live" data.
+  const courier = courierQ.data ?? (USE_MOCK ? fx.courier : emptyCourier);
+  const stats = statsQ.data ?? (USE_MOCK ? fx.stats : emptyStats);
+  const balance =
+    balanceQ.data ??
+    (USE_MOCK
+      ? { balance: fx.balance, heldTotal: fx.heldTotal, held: fx.held, ledger: fx.ledger }
+      : emptyBalance);
+  const activeRaw = activeQ.data ?? (USE_MOCK ? fx.active : []);
+  const completed = completedQ.data ?? (USE_MOCK ? fx.completed : []);
+  const unread = (notifQ.data ?? (USE_MOCK ? fx.notifications : [])).filter((n) => n.unread).length;
+
+  const feedError =
+    !USE_MOCK &&
+    (courierQ.isError ||
+      statsQ.isError ||
+      balanceQ.isError ||
+      activeQ.isError ||
+      completedQ.isError);
+
+  // Reflect the server's shift state on load (and after a toggle's refetch).
+  useEffect(() => {
+    if (!USE_MOCK && courierQ.data) setOnline(courierQ.data.online);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courierQ.data?.online]);
+
+  const toggleOnline = () => {
+    const next = !online;
+    setOnline(next); // optimistic
+    onlineM.mutate(next); // POST /courier/shift/online/ (no-op in mock)
   };
-  const activeRaw = useActiveOrders().data ?? fx.active;
-  const completed = useCompletedOrders().data ?? fx.completed;
-  const unread = (useNotifications().data ?? fx.notifications).filter((n) => n.unread).length;
+
+  const onRefresh = () => {
+    [qk.activeOrders, qk.completed, qk.balance, qk.stats, qk.notifications, qk.courier].forEach(
+      (queryKey) => void qc.invalidateQueries({ queryKey }),
+    );
+  };
 
   const active = applyOrderStagePreview(activeRaw, orderStage);
   const pad = { paddingVertical: space[4], paddingHorizontal: space[5], paddingBottom: 108 };
@@ -97,13 +138,14 @@ export default function OrdersScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: space[3], marginTop: space[5] }}>
-          <ShiftToggle online={online} onToggle={() => setOnline(!online)} />
+          <ShiftToggle online={online} onToggle={toggleOnline} />
         </View>
       </HeaderBar>
 
       <PullToRefresh
         testID="orders-scroll"
         contentContainerStyle={pad}
+        onRefresh={onRefresh}
         renderSkeleton={() => (
           <Stack>
             <SkeletonOrderCard />
@@ -113,6 +155,7 @@ export default function OrdersScreen() {
         )}
       >
         <Stack gap={space[4]}>
+          {feedError ? <FeedError onRetry={onRefresh} testID="orders-error" /> : null}
           {/* balance pill → cash to hand in */}
           <Pressable
             testID="orders-balance-pill"

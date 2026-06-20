@@ -19,10 +19,15 @@ import { EASE_OUT, EASE_SPRING, useReducedMotion } from './easings';
 export function IncomingOrderSheet({
   order,
   onAccept,
+  onDecline,
   onDismiss,
 }: {
   order: IncomingOrder;
   onAccept: () => void;
+  /** Explicit "Decline" — frees the order on the server (declineOrder). */
+  onDecline: () => void;
+  /** Passive close — scrim tap or countdown timeout. Closes the sheet locally;
+   *  does NOT actively decline server-side (the server window expires on its own). */
   onDismiss: () => void;
 }) {
   const { colors, radii, space } = useTheme();
@@ -72,7 +77,7 @@ export function IncomingOrderSheet({
           }}
         />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-          <RingCountdown seconds={20} onExpire={onDismiss} />
+          <RingCountdown seconds={order.expiresIn ?? 20} onExpire={onDismiss} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ fontSize: 19, letterSpacing: -0.02 * 19 }} weight="700">
               {T('new_order')} #{order.id}
@@ -130,7 +135,7 @@ export function IncomingOrderSheet({
             variant="ghost"
             size="sm"
             title={T('decline')}
-            onPress={onDismiss}
+            onPress={onDecline}
             testID="incoming-decline"
           />
         </View>
