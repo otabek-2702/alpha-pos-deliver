@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Alpha POS Courier",
-    "slug": "alpha-pos-courier",
-    "scheme": "alphacourier",
+    "name": "Alfa POS",
+    "slug": "alfa-pos-courier",
+    "scheme": "alfacourier",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "uz.alphapos.courier",
+      "bundleIdentifier": "uz.alfapos.courier",
       "infoPlist": {
         "LSApplicationQueriesSchemes": [
           "yandexnavi",
@@ -20,9 +20,9 @@
       }
     },
     "android": {
-      "package": "uz.alphapos.courier",
+      "package": "uz.alfapos.courier",
       "adaptiveIcon": {
-        "backgroundColor": "#0B0E13",
+        "backgroundColor": "#3A5BDB",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

@@ -34,7 +34,7 @@ export const courier: Courier = {
   vehicle: 'Scooter',
   plate: '01 A 777 BC',
   id: 'CR-118',
-  branch: 'Alpha — Chilonzor',
+  branch: 'Alfa — Chilonzor',
   rating: 4.9,
   online: true,
 };

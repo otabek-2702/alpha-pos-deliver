@@ -80,7 +80,7 @@ export function PushBanner({
                 color="textTertiary"
                 style={{ letterSpacing: 0.04 * 11, textTransform: 'uppercase', flex: 1 }}
               >
-                Alpha Courier
+                Alfa POS Courier
               </Text>
               <Text variant="micro" color="textTertiary">
                 now

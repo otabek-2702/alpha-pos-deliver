@@ -85,8 +85,9 @@ export default function LoginScreen() {
           </Text>
         </View>
         <Text weight="700" style={{ fontSize: 24, letterSpacing: -0.02 * 24 }}>
-          Alpha
+          Alfa
           <Text weight="700" color="primary" style={{ fontSize: 24 }}>
+            {' '}
             POS
           </Text>
         </Text>
