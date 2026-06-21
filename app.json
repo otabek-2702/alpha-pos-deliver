@@ -31,12 +31,20 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-font", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store"
+    ],
     "extra": {
       "apiBaseUrl": "",
       "wsBaseUrl": "",
       "useMock": true,
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "944805db-0860-4ef7-be20-d407eccf245a"
+      }
+    },
+    "owner": "adrian_2702"
   }
 }
