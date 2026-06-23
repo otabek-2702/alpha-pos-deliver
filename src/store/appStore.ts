@@ -67,8 +67,8 @@ export const useAppStore = create<AppState>((set) => ({
   loggedIn: false,
   online: true, // CDB.courier.online
   shareLoc: true,
-  themePref: 'system',
-  accent: '#3A5BDB',
+  themePref: 'dark',
+  accent: '#6E8BFF',
   lang: 'EN',
   orderStage: 'Assigned',
   addressMode: 'Auto',

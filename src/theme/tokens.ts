@@ -183,7 +183,7 @@ export const darkColors: ColorTokens = {
 };
 
 /* ---- Accent presets (from app/app.jsx ACCENTS tweak) ---- */
-export type AccentKey = '#3A5BDB' | '#0E8F57' | '#E0823C' | '#7A5AE0';
+export type AccentKey = '#6E8BFF' | '#36C07E' | '#3A5BDB' | '#0E8F57' | '#E0823C' | '#7A5AE0';
 export type AccentPreset = {
   hover: string;
   active: string;
@@ -194,6 +194,24 @@ export type AccentPreset = {
 };
 
 export const accents: Record<AccentKey, AccentPreset> = {
+  // Design v2 default accent — lighter blue, paired with dark mode.
+  '#6E8BFF': {
+    hover: '#819AFF',
+    active: '#5C7BF5',
+    weak: '#EDF0FD',
+    weak2: '#DEE4FB',
+    border: '#C7D1F7',
+    ring: 'rgba(110,139,255,.34)',
+  },
+  // Design v2 green swatch (derived variants — not in the design's preset map).
+  '#36C07E': {
+    hover: '#2BA86C',
+    active: '#239058',
+    weak: '#E7F7EF',
+    weak2: '#CFEFDD',
+    border: '#B8E6CC',
+    ring: 'rgba(54,192,126,.26)',
+  },
   '#3A5BDB': {
     hover: '#2E49B8',
     active: '#263EA0',
@@ -228,7 +246,7 @@ export const accents: Record<AccentKey, AccentPreset> = {
   },
 };
 
-export const ACCENT_OPTIONS: AccentKey[] = ['#3A5BDB', '#0E8F57', '#E0823C', '#7A5AE0'];
+export const ACCENT_OPTIONS: AccentKey[] = ['#6E8BFF', '#36C07E', '#E0823C', '#7A5AE0'];
 
 /**
  * Apply an accent preset onto a base scheme exactly as app.jsx does:
