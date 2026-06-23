@@ -1,92 +1,52 @@
-> ## ✅ RESOLVED (verified 2026-06 against commit `156c2a8`)
-> The backend dev shipped **all** of the items below: payments (`create`/`refund`/`webhook`
-> + `payment.paid`/`payment.refunded` WS), a real payment/settlement **ledger** behind
-> `balance` + `reconciliation`, `settle` that writes a `CourierSettlement`, **persisted**
-> notifications + `notifications/read/`, a `share-location/` toggle, `logout`, and GPS-trail
-> `distanceKm`. His 28 tests pass; I verified every endpoint live (the cash money-loop
-> 0 → 50 000 → refund → 0 included).
->
-> **One app↔backend contract gap I fixed app-side** (not a backend defect): the backend is
-> record-only with a `CASH/CARD/QR` provider vocabulary + UPPERCASE status; the app was built
-> for gateway providers (`payme`) + lowercase. The app now maps `cash→CASH` / gateway→`QR`,
-> tolerates uppercase status + any provider string on the `payment.paid` frame, and records
-> cash collections so the ledger receives them. Everything below is now DONE — kept for history.
+# Backend tasks — Alfa POS courier
+
+> **Living list.** When a task here is built + verified, it gets **deleted** from this file
+> (not archived). So this file always shows only what's LEFT to build. History lives in git.
 
 ---
 
-# Backend — what still needs to be built (for the backend dev)
+## Multi-tenant courier login + server discovery (security)
 
-Audited the courier app ↔ `alpha_pos_server` (latest `main`, commit `acad2e7`) end to end:
-every REST endpoint + WS event the app calls, against `couriers/` on the server. The
-delivery lifecycle (assign → ready → pickup → on-way → delivered) and the courier→cashier
-GPS relay are **fully implemented and verified live**. What's below is everything still
-missing or stubbed.
+**Context.** Each restaurant runs its **own** server (own URL). The courier app must NOT hardcode
+a server URL, and must NOT send raw phone/password to a server it just picked. Instead, at login
+the app asks a **central broker** ("our backend"), which authenticates the link and returns
+**which server to talk to + a token**. The app then talks only to that restaurant's server.
 
-## 1. The old backend TODO list — NOT done
+### Pieces to build
 
-All 9 `# TODO payments doc §5` markers in `couriers/views.py` are still open. They all
-depend on a **payments ledger that doesn't exist yet**:
+**1. Central broker** — one instance for all restaurants (e.g. `https://provision.alfapos.uz`):
+- **Tenant registry**: `Tenant { id, name, server_url, ws_url, shared_secret / public_key, status }`.
+- `POST /provision/register` `{ tenant_id, code, courier_id, expires_at }` — called by a tenant
+  server when the desktop links a courier device (authenticated by the tenant's secret). Central
+  stores `code → { tenant, courier, exp }`.
+- `POST /provision/claim` `{ code, device_id }` → validate the one-time code (TTL ~5 min, single
+  use) → return `{ server_url, ws_url, claim_token, branch }`. `claim_token` = short-lived token
+  **signed by central**, bound to `courier_id` + `device_id`.
 
-| Endpoint | Field | Current | Should be |
-|---|---|---|---|
-| `GET /courier/balance/` | `balance` | hardcoded `0` | net payable to the courier |
-| `GET /courier/balance/` | `ledger` | hardcoded `[]` | settlement ledger rows `{at,kind,order,amount,label}` |
-| `GET /courier/stats/today/` | `distanceKm` | hardcoded `0` | summed from a GPS trail (not persisted — `LocationPing` keeps only the latest point) |
-| `GET /courier/shift/reconciliation/` | `qr_collected` | `0` | real QR/card total |
-| `GET /courier/shift/reconciliation/` | `bonuses` | `0` | real |
-| `GET /courier/shift/reconciliation/` | `tips` | `0` | real |
-| `GET /courier/shift/reconciliation/` | `qr_orders` | `0` | real count |
-| `GET /courier/shift/reconciliation/` | `net_payout` | `= delivery_fees` | net of QR/bonuses/tips/cash |
-| `POST /courier/shift/settle/` | whole body | returns `{ok:true}`, writes nothing | write the settlement ledger row + reset held cash |
+**2. Tenant server** (the existing `alpha_pos_server`, one per restaurant):
+- On desktop **"link courier device"**: mint a one-time `code`, register it with central
+  (`/provision/register`), show a **QR** encoding the `code` (central URL is baked into the app),
+  or `{ central_url, code }`.
+- `POST /auth/courier/claim` `{ claim_token, device_id }` → verify central's signature on
+  `claim_token` (offline, via central's public key / shared secret) → create the courier session →
+  return `{ token }` (the same long-lived courier token the app already uses everywhere).
 
-App impact: the Cash screen's **Recent activity** is empty, **Your payout** shows `0`, and the
-**Distance** KPI on Today is always `0 km`.
+**3. App** (I'll do this side once the contract is fixed):
+- Login = scan QR (`code`) → central `/provision/claim` → `{ server_url, ws_url, claim_token }` →
+  tenant `/auth/courier/claim` → `{ token }`. Store `{ serverUrl, wsUrl, token }` in secure-store;
+  every later REST/WS call uses that `serverUrl`/`wsUrl`.
+- Manual `code` entry fallback. "Relink / switch restaurant" path. Handle `server_url` change.
 
-## 2. Payments — entirely missing (biggest blocker)
+### Security
+- One-time, short-TTL `code` + `claim_token`; both bound to `device_id`.
+- `claim_token` signed by central so the tenant verifies it **offline** (no central round-trip).
+- Central ↔ tenant auth via shared secret (HMAC) or mTLS.
+- App stores only the tenant token + URLs — never any central credential.
 
-The app's QR/cash payment flow calls routes this backend does not mount:
-
-- `POST /payments/create/` — app posts `{order_id, provider, amount}`, expects
-  `{payment_id, status, link}` (`createPaymentResponseSchema`). **404 today** → the QR screen
-  falls back to a fake local pay-link and can never confirm a real payment.
-- `POST /payments/<id>/refund/` — app posts here for refunds; **404 today**.
-- **WS `payment.paid`** — the QR screen flips "Waiting…" → "Paid" ONLY on this server event
-  (correct: never trust the client). Nothing in `couriers/` emits it, so a real QR payment
-  never completes in-app.
-- **WS `payment.refunded`** — order detail reverts to UNPAID only on this event; never emitted.
-
-Security model is already correct on the app side (paid only via verified webhook → WS). The
-backend needs the payment provider integration + webhook → `payment.paid`/`payment.refunded`
-fan-out on `/ws/courier/` (same `{event,data}` envelope as the order events).
-
-Also note: **cash collection isn't recorded** either — the app marks cash "paid" locally; once
-`/payments/create/` exists it should accept `provider:"cash"` so cash collections reconcile too.
-
-## 3. Smaller endpoints the app wants
-
-- **Share-location toggle** — the Profile "Share live location" switch has no endpoint. Add
-  `POST /courier/shift/share-location/ {share:bool}` (or fold `share` into `shift/online/`).
-  `Courier.share_loc` already exists and already gates the GPS relay; it's just not settable.
-- **Notifications are synthetic + permanently unread** — `/courier/notifications/` is built on
-  the fly from assignments with `unread: True` always. There's no persisted Notification model
-  and no **mark-as-read** endpoint, so the app's bell badge can never clear. Add a
-  `Notification` table + `POST /courier/notifications/read/`.
-- **Logout** — `POST /auth/courier/logout/` to invalidate the session. The app logout only
-  clears the local token; the server session stays valid until its 7-day TTL. (Optional for
-  token auth, but recommended.)
-- **GPS trail** — persist `LocationPing` history (or a distance accumulator) so `stats.distanceKm`
-  can be real.
-
-## 4. What the app now does (so you can test against it)
-
-The app is wired to call (all verified 200 against a local run): `setOnline`
-(`/courier/shift/online/`), `settleShift` (`/courier/shift/settle/`), `acceptOrder`/`declineOrder`/
-`updateOrderStatus` (`/orders/<id>/...`), `registerPushToken` (`/courier/push-token/`), plus all
-the read feeds. It opens a persistent `/ws/courier/` socket and reacts to `order.assigned`
-(→ incoming sheet, using the server's `expires_in` for the accept countdown), `order.ready`,
-`order.status`, `order.cancelled`.
-
-Still **not** sent by the app (needs a native dep + a small amount of app work, tracked
-separately): live `location.ping` streaming (needs `expo-location` + a WS-send helper) and
-obtaining an Expo push token (needs `expo-notifications`). The backend side for both already
-exists and is verified.
+### Open questions for the dev (need answers before I wire the app)
+1. Are couriers identified **globally** (central is the identity provider, phone+password lives at
+   central) or **per-tenant only** (login is purely the desktop QR-link, no global directory)?
+2. `claim_token`: asymmetric **JWT** (ship central's public key to tenants) or **shared-secret HMAC**?
+3. QR payload: just `{ code }` (central URL baked into the app) or `{ central_url, code }`?
+4. Keep the tenant token scheme as `Authorization: Token <key>` (current) — yes/no?
+5. Does the desktop POS already have a "link courier device" action, or is that new too?
