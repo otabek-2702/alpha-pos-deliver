@@ -12,6 +12,11 @@ a server URL, and must NOT send raw phone/password to a server it just picked. I
 the app asks a **central broker** ("our backend"), which authenticates the link and returns
 **which server to talk to + a token**. The app then talks only to that restaurant's server.
 
+**DECIDED:** couriers are **per-restaurant** (a courier belongs to one restaurant). The central
+broker is a **pure router** — it does NOT hold courier passwords and is NOT an identity provider.
+Login happens by scanning the desktop's QR link; central only maps the one-time `code` to the
+right tenant and relays a signed claim token. No global courier directory.
+
 ### Pieces to build
 
 **1. Central broker** — one instance for all restaurants (e.g. `https://provision.alfapos.uz`):
@@ -44,9 +49,9 @@ the app asks a **central broker** ("our backend"), which authenticates the link 
 - App stores only the tenant token + URLs — never any central credential.
 
 ### Open questions for the dev (need answers before I wire the app)
-1. Are couriers identified **globally** (central is the identity provider, phone+password lives at
-   central) or **per-tenant only** (login is purely the desktop QR-link, no global directory)?
-2. `claim_token`: asymmetric **JWT** (ship central's public key to tenants) or **shared-secret HMAC**?
-3. QR payload: just `{ code }` (central URL baked into the app) or `{ central_url, code }`?
-4. Keep the tenant token scheme as `Authorization: Token <key>` (current) — yes/no?
-5. Does the desktop POS already have a "link courier device" action, or is that new too?
+1. `claim_token`: asymmetric **JWT** (ship central's public key to tenants) or **shared-secret HMAC**?
+2. QR payload: just `{ code }` (central URL baked into the app) or `{ central_url, code }`?
+3. Keep the tenant token scheme as `Authorization: Token <key>` (current) — yes/no?
+4. Does the desktop POS already have a "link courier device" action, or is that new too?
+5. How does a restaurant get registered with central (tenant `server_url`/`ws_url` + secret) —
+   manual onboarding, or a self-register endpoint?
